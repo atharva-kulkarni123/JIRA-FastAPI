@@ -1,0 +1,30 @@
+services:
+  app:
+    build: . 
+    container_name: "jira-app" 
+    environment:
+      DATABASE_URL: postgresql://<username>:<password>@db:5432/<dbname>
+    ports:
+      - "5000:5000"
+    depends_on:
+      db:
+        condition: service_healthy  # waits until postgre is healthy 
+  
+  db:
+    image: postgres:16
+    container_name: "jira-db"
+    environment:
+      POSTGRES_USER: <username>
+      POSTGRES_PASSWORD: <password>
+      POSTGRES_DB: <dbname>
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # data survives container restarts
+    healthcheck:
+      test: ["CMD-SHELL", "psql -U <username> -d <dbname>"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  postgres_data:
