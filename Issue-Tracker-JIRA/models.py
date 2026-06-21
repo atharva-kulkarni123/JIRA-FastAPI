@@ -12,7 +12,7 @@ class User(Base):
     password_hash = Column(String)
 
 class Issue(Base):
-    __tablename__ = "issue s"
+    __tablename__ = "issues"
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, unique=True)
