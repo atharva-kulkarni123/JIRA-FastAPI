@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, EmailStr
 from typing import Literal
 
 
@@ -40,3 +40,7 @@ class IssueResponse(BaseModel):
     assigned_to: int
 
     model_config = ConfigDict(from_attributes=True)  # this is used because the returned response from the Db is a sqlalchemy object and we need it to be a dict.       
+
+class LoginResponse(BaseModel):
+    email: EmailStr
+    password: str

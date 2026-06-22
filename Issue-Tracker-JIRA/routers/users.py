@@ -15,7 +15,7 @@ def get_all_users(db: Session= Depends(get_db)):
     else:
         return user
 
-@router.post("/add")
+@router.post("/register")
 def add_user(user: UserCreate, db: Session = Depends(get_db)):
     new_user = models.User(
         name=user.name,

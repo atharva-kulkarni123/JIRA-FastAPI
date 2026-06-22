@@ -3,6 +3,7 @@ from database import get_db
 from schemas import CreateIssue, IssueResponse
 from sqlalchemy.orm import Session
 import models
+from auth import get_current_user
 
 router = APIRouter(prefix="/issues", tags=["issues"])
 
@@ -15,7 +16,7 @@ def get_all_issues(db: Session=Depends(get_db)):
         return issue   
 
 @router.post("/create")
-def  create_issue(issue: CreateIssue, db: Session=Depends(get_db)):
+def  create_issue(issue: CreateIssue, current_user = Depends(get_current_user) , db: Session=Depends(get_db)):
     user = db.query(models.User).filter(issue.assigned_to == models.User.name).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -24,7 +25,8 @@ def  create_issue(issue: CreateIssue, db: Session=Depends(get_db)):
         description = issue.description,
         priority = issue.priority,
         status = issue.status,
-        assigned_to = user.id
+        assigned_to = user.id,
+        created_by = current_user.id
     )
     db.add(new_issue)
     db.commit()

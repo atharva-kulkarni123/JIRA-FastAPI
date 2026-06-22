@@ -20,4 +20,5 @@ class Issue(Base):
     priority = Column(String, nullable=False)
     status = Column (String)
     assigned_to = Column(Integer, ForeignKey("users.id"))  # Store ID
+    created_by = Column(Integer, ForeignKey("users.id")) 
     
