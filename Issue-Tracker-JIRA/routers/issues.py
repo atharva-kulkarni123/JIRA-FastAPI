@@ -8,7 +8,7 @@ from auth import get_current_user
 router = APIRouter(prefix="/issues", tags=["issues"])
 
 @router.get("/issues", response_model=list[IssueResponse])
-def get_all_issues(db: Session=Depends(get_db)):
+def get_all_issues(current_user = Depends(get_current_user), db: Session=Depends(get_db)):
     issue = db.query(models.Issue).all()
     if not issue:
         raise HTTPException(status_code=404, detail="No Issue found")
