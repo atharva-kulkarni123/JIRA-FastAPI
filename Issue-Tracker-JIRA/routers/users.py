@@ -1,7 +1,7 @@
 from fastapi import Depends, HTTPException, APIRouter
 from database import get_db
 from sqlalchemy.orm import Session
-from schemas import UserCreate, UserResponse, UserUpdate
+from schemas import UserCreate, UserResponse, UserUpdate, LoginRequest
 import models
 from utils.security import hash_password
 from auth import get_current_user
@@ -12,11 +12,11 @@ router = APIRouter(prefix = "/user", tags = ["users"])
 def get_all_users(current_user = Depends(get_current_user), db: Session= Depends(get_db)):
     user = db.query(models.User).all()
     if not user:
-        raise HTTPException(status_code=404, detail="No Users registered")
+        raise HTTPException(status_code=200, detail="No Users registered")
     else:
         return user
 
-@router.post("/register")
+@router.post("/register", response_model=list[LoginRequest])
 def add_user(user: UserCreate, db: Session = Depends(get_db)):
     new_user = models.User(
         name=user.name,
@@ -30,12 +30,16 @@ def add_user(user: UserCreate, db: Session = Depends(get_db)):
 
     return new_user
 
-@router.delete("/delete")
-def delete_user_by_name(id: int, db: Session = Depends(get_db)):
+@router.delete("/delete", response_model=list[UserResponse])
+def delete_user_by_name(id: int, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
     user = db.query(models.User).filter(models.User.id == id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not Found")
           
+      # Ownership check
+    if current_user.id != id:
+        raise HTTPException(status_code=403, detail="Not authorized to delete this user")
+    
     db.delete(user)
     db.commit()
         
@@ -46,6 +50,10 @@ def update_user(user_id: int, user_data: UserUpdate, current_user = Depends(get_
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+    
+      # Ownership check
+    if current_user.id != id:
+        raise HTTPException(status_code=403, detail="Not authorized to delete this user")
     
     # Update only provided fields
     if user_data.name is not None:

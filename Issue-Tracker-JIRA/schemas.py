@@ -37,10 +37,11 @@ class IssueResponse(BaseModel):
     description: str
     priority: Literal["Low", "Medium", "High", "Critical"]
     status: Literal["Done", "In Progress","Resolved", "Closed"]
-    assigned_to: int
+    assigned_to: int 
+    created_by: int
 
     model_config = ConfigDict(from_attributes=True)  # this is used because the returned response from the Db is a sqlalchemy object and we need it to be a dict.       
 
-class LoginResponse(BaseModel):
+class LoginRequest(BaseModel):
     email: EmailStr
     password: str

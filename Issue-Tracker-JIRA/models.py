@@ -15,7 +15,7 @@ class Issue(Base):
     __tablename__ = "issues"
 
     id = Column(Integer, primary_key=True, index=True)
-    title = Column(String, unique=True)
+    title = Column(String)
     description = Column(String)
     priority = Column(String, nullable=False)
     status = Column (String)

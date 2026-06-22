@@ -11,7 +11,7 @@ router = APIRouter(prefix="/issues", tags=["issues"])
 def get_all_issues(current_user = Depends(get_current_user), db: Session=Depends(get_db)):
     issue = db.query(models.Issue).all()
     if not issue:
-        raise HTTPException(status_code=404, detail="No Issue found")
+        raise HTTPException(status_code=200, detail="No Issue found")
     else:
         return issue   
 
