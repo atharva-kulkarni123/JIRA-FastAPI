@@ -4,11 +4,12 @@ from sqlalchemy.orm import Session
 from schemas import UserCreate, UserResponse, UserUpdate
 import models
 from utils.security import hash_password
+from auth import get_current_user
 
 router = APIRouter(prefix = "/user", tags = ["users"])
 
 @router.get("/all", response_model=list[UserResponse])
-def get_all_users(db: Session= Depends(get_db)):
+def get_all_users(current_user = Depends(get_current_user), db: Session= Depends(get_db)):
     user = db.query(models.User).all()
     if not user:
         raise HTTPException(status_code=404, detail="No Users registered")
@@ -30,18 +31,18 @@ def add_user(user: UserCreate, db: Session = Depends(get_db)):
     return new_user
 
 @router.delete("/delete")
-def delete_user_by_name(name: str, db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(models.User.name == name).first()
+def delete_user_by_name(id: int, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.id == id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not Found")
           
     db.delete(user)
     db.commit()
         
-    return {"message": "User deleted successfully", "name": name}
+    return {"message": "User deleted successfully", "id": id}
 
 @router.patch("/update/{user_id}")
-def update_user(user_id: int, user_data: UserUpdate, db: Session = Depends(get_db)):
+def update_user(user_id: int, user_data: UserUpdate, current_user = Depends(get_current_user), db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")

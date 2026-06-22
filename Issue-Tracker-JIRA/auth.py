@@ -10,26 +10,21 @@ security = HTTPBearer()
 
 def get_current_user(credentials=Depends(security), db: Session = Depends(get_db)):
     token = credentials.credentials
-
     try:
         payload = jwt.decode(
             token,
             SECRET_KEY,
             algorithms=[ALGORITHM]
         )
-
         user_id = payload.get("sub")
-
         if user_id is None:
             raise HTTPException(
                 status_code=401, detail="Invalid Token"
             )
-    
     except JWTError:
         raise HTTPException(
                 status_code=401, detail="Invalid Token"
             )
-
     user = db.query(models.User).filter(models.User.id == int(user_id)).first()
     if not user:
         raise HTTPException(
