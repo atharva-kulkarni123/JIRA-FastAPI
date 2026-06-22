@@ -10,13 +10,9 @@ router = APIRouter(prefix = "/user", tags = ["users"])
 
 @router.get("/all", response_model=list[UserResponse])
 def get_all_users(current_user = Depends(get_current_user), db: Session= Depends(get_db)):
-    user = db.query(models.User).all()
-    if not user:
-        raise HTTPException(status_code=200, detail="No Users registered")
-    else:
-        return user
+    return db.query(models.User).all()
 
-@router.post("/register", response_model=list[LoginRequest])
+@router.post("/register", response_model=LoginRequest)
 def add_user(user: UserCreate, db: Session = Depends(get_db)):
     new_user = models.User(
         name=user.name,
@@ -30,7 +26,7 @@ def add_user(user: UserCreate, db: Session = Depends(get_db)):
 
     return new_user
 
-@router.delete("/delete", response_model=list[UserResponse])
+@router.delete("/delete")
 def delete_user_by_name(id: int, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
     user = db.query(models.User).filter(models.User.id == id).first()
     if not user:
@@ -52,7 +48,7 @@ def update_user(user_id: int, user_data: UserUpdate, current_user = Depends(get_
         raise HTTPException(status_code=404, detail="User not found")
     
       # Ownership check
-    if current_user.id != id:
+    if current_user.id != user.id:
         raise HTTPException(status_code=403, detail="Not authorized to delete this user")
     
     # Update only provided fields

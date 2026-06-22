@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from schemas import LoginResponse 
+from schemas import LoginRequest 
 from database import get_db
 from sqlalchemy.orm import Session
 import models
@@ -12,7 +12,7 @@ from jose import jwt, JWTError
 router = APIRouter(prefix="/auth", tags = ["auth"])
 
 @router.post("/login")
-def login(user: LoginResponse, db: Session = Depends(get_db)):
+def login(user: LoginRequest, db: Session = Depends(get_db)):
     db_user = db.query(models.User).filter(models.User.email == user.email).first()
     if not db_user:
         raise HTTPException(status_code=401, detail="Invalid Credentials")
@@ -30,7 +30,7 @@ def login(user: LoginResponse, db: Session = Depends(get_db)):
 def refresh_access_token(refresh_token: str, db: Session = Depends(get_db)):
     try:
         payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
-    except:
+    except  JWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired refresh Token")
 
     if payload.get("type") != "refresh":
