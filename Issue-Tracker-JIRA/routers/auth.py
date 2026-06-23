@@ -8,49 +8,17 @@ from utils.auth import create_access_token, create_refresh_token
 from auth import get_current_user
 from utils.auth import SECRET_KEY, ALGORITHM
 from jose import jwt, JWTError
+from services import auth_service
 
 router = APIRouter(prefix="/auth", tags = ["auth"])
 
 @router.post("/login")
 def login(user: LoginRequest, db: Session = Depends(get_db)):
-    db_user = db.query(models.User).filter(models.User.email == user.email).first()
-    if not db_user:
-        raise HTTPException(status_code=401, detail="Invalid Credentials")
-    verify = verify_password(user.password, db_user.password_hash)
-    if not verify:
-        raise HTTPException(status_code=401, detail="Invalid Credentials")
-    token = {"sub": str(db_user.id)}
-    return {
-        "access_token": create_access_token(token), 
-        "refresh_token": create_refresh_token(token),
-        "token_type": "bearer"
-    }
+    return auth_service.login(user, db)
 
 @router.post("/refresh")
 def refresh_access_token(refresh_token: str, db: Session = Depends(get_db)):
-    try:
-        payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
-    except  JWTError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired refresh Token")
-
-    if payload.get("type") != "refresh":
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired refresh Token")
-    
-    user_id = payload.get("sub")
-    if user_id is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired refresh Token")
-
-    user = db.query(models.User).filter(models.User.id == int(user_id)).first()
-    if not user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired refresh Token")
-    
-    token_data = {"sub": str(user.id)}
-    return {
-        "access_token": create_access_token(token_data),
-        "refresh_token": create_refresh_token(token_data),
-        "token_type": "bearer"
-    }
-
+    return auth_service.refresh_access_token(refresh_token, db)
 
 @router.get("/me")
 def me(current_user=Depends(get_current_user)):
